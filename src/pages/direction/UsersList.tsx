@@ -177,7 +177,7 @@ const UsersList = () => {
                               size="sm"
                               asChild
                             >
-                              <Link to={`/direction/users/edit/${user.id}`}>
+                              <Link to={`/direction/users/${user.id}/edit`}>
                                 <Pencil className="h-4 w-4" />
                               </Link>
                             </Button>
