@@ -9,13 +9,14 @@ const corsHeaders = {
 interface DiscordNotificationRequest {
   senderEmail: string;
   senderName?: string;
+  senderDiscordId?: string; // <-- ajouté pour pinger l'expéditeur
   recipientEmails: string[];
   recipientDiscordIds: string[];
   subject: string;
   content: string;
 }
 
-const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1423024547866607789/andgHH1qqc2V3c-fFgEU5iosLhyAJlKEY7hWvkTR8IUSIe6TlsWKPGa1zHi4EPw8pKnb";
+const DISCORD_WEBHOOK_URL = Deno.env.get("DISCORD_WEBHOOK_URL") ?? "https://discord.com/api/webhooks/1423024547866607789/andgHH1qqc2V3c-fFgEU5iosLhyAJlKEY7hWvkTR8IUSIe6TlsWKPGa1zHi4EPw8pKnb"; // <-- sécurise l’URL via variable d’env
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -29,6 +30,7 @@ Deno.serve(async (req: Request) => {
     const {
       senderEmail,
       senderName,
+      senderDiscordId,
       recipientEmails,
       recipientDiscordIds,
       subject,
@@ -38,25 +40,22 @@ Deno.serve(async (req: Request) => {
     console.log('Discord notification request:', {
       senderEmail,
       senderName,
+      senderDiscordId,
       recipientEmails,
       recipientDiscordIds,
       subject
     });
 
-    if (!recipientDiscordIds || recipientDiscordIds.length === 0) {
-      return new Response(
-        JSON.stringify({ success: true, message: 'No Discord IDs to notify' }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
-    }
+    // Vérifie qu'il y a bien des destinataires
+    const validRecipientIds = (recipientDiscordIds || [])
+      .filter(id => id && /^\d+$/.test(id.trim()));
 
-    const validDiscordIds = recipientDiscordIds.filter(id => id && /^\d+$/.test(id.trim()));
+    // Vérifie expéditeur
+    const validSenderId = senderDiscordId && /^\d+$/.test(senderDiscordId.trim())
+      ? senderDiscordId.trim()
+      : null;
 
-    if (validDiscordIds.length === 0) {
-      console.log('No valid Discord IDs found');
+    if (!validSenderId && validRecipientIds.length === 0) {
       return new Response(
         JSON.stringify({ success: true, message: 'No valid Discord IDs to notify' }),
         {
@@ -66,13 +65,24 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const mentions = validDiscordIds.map(id => `<@${id.trim()}>`).join(' ');
+    // Mentions formatées
+    const senderMention = validSenderId
+      ? `<@${validSenderId}>`
+      : (senderName || senderEmail);
 
-    const displaySender = senderName || senderEmail;
-    const recipientsList = recipientEmails.join(', ');
+    const recipientMentions = validRecipientIds.length > 0
+      ? validRecipientIds.map(id => `<@${id}>`).join(', ')
+      : recipientEmails.join(', ');
 
-    const discordMessage = `${mentions}\n\n**📧 Nouveau Message Interne**\n\n📤 **De :** ${displaySender}\n📥 **À :** ${recipientsList}\n📋 **Objet :** ${subject}\n\n💬 ${content}\n\n🔗 Consultez le portail agent pour répondre`;
+    // Construction du message final
+    const discordMessage = `**📧 Nouveau Message Interne**\n\n` +
+      `📤 **De :** ${senderMention}\n` +
+      `📥 **À :** ${recipientMentions}\n` +
+      `📋 **Objet :** ${subject}\n\n` +
+      `💬 ${content}\n\n` +
+      `🔗 Consultez le portail agent pour répondre`;
 
+    // Envoi à Discord
     const discordResponse = await fetch(DISCORD_WEBHOOK_URL, {
       method: 'POST',
       headers: {
@@ -81,7 +91,7 @@ Deno.serve(async (req: Request) => {
       body: JSON.stringify({
         content: discordMessage,
         allowed_mentions: {
-          users: validDiscordIds
+          users: [...validRecipientIds, ...(validSenderId ? [validSenderId] : [])]
         }
       }),
     });
@@ -98,7 +108,7 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({
         success: true,
         message: 'Discord notification sent successfully',
-        notifiedIds: validDiscordIds
+        notifiedIds: [...validRecipientIds, ...(validSenderId ? [validSenderId] : [])]
       }),
       {
         status: 200,
