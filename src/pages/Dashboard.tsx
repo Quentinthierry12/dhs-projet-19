@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ProgressBar } from "@/components/shared/ProgressBar";
-import { Users, School, Award, TrendingUp, Home, Plus } from "lucide-react";
+import { Users, School, Award, TrendingUp, Chrome as Home, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Dashboard = () => {

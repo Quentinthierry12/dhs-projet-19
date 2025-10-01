@@ -2,30 +2,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  Home,
-  Users,
-  Settings,
-  Briefcase,
-  BookOpen,
-  ShieldCheck,
-  GraduationCap,
-  FileText,
-  LayoutDashboard,
-  Calendar,
-  AlertTriangle,
-  MessageSquare,
-  ListChecks,
-  Building2,
-  Badge as BadgeIcon,
-  KeyRound,
-  Eye,
-  UserPlus,
-  Activity,
-  LogOut,
-  Lock,
-  Library,
-} from "lucide-react";
+import { Chrome as Home, Users, Settings, Briefcase, BookOpen, ShieldCheck, GraduationCap, FileText, LayoutDashboard, Calendar, TriangleAlert as AlertTriangle, MessageSquare, ListChecks, Building2, Badge as BadgeIcon, KeyRound, Eye, UserPlus, Activity, LogOut, Lock, Library } from "lucide-react";
 
 interface SidebarProps {
   className?: string;
