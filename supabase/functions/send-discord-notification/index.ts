@@ -1,64 +1,78 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
 interface DiscordNotificationRequest {
-  discordIds: string[];
-  message: string;
-  portalLink?: string;
+  senderEmail: string;
+  senderName?: string;
+  recipientEmails: string[];
+  recipientDiscordIds: string[];
+  subject: string;
+  content: string;
 }
 
-const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1407623895783178332/ls7n07Jbhpsb5ItLJ0Dm3NL5-UU-sdz9gNEwh8snwjRfB4pJryxVaTd52ToBQPJz5cYQ";
+const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1423024547866607789/andgHH1qqc2V3c-fFgEU5iosLhyAJlKEY7hWvkTR8IUSIe6TlsWKPGa1zHi4EPw8pKnb";
 
-const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, {
+      status: 200,
+      headers: corsHeaders,
+    });
   }
 
   try {
-    const { discordIds, message, portalLink }: DiscordNotificationRequest = await req.json();
+    const {
+      senderEmail,
+      senderName,
+      recipientEmails,
+      recipientDiscordIds,
+      subject,
+      content
+    }: DiscordNotificationRequest = await req.json();
 
-    console.log('Discord notification request:', { discordIds, message, portalLink });
+    console.log('Discord notification request:', {
+      senderEmail,
+      senderName,
+      recipientEmails,
+      recipientDiscordIds,
+      subject
+    });
 
-    if (!discordIds || discordIds.length === 0) {
+    if (!recipientDiscordIds || recipientDiscordIds.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'No Discord IDs provided' }),
+        JSON.stringify({ success: true, message: 'No Discord IDs to notify' }),
         {
-          status: 400,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
         }
       );
     }
 
-    // Filtrer les Discord IDs valides (doivent être des nombres)
-    const validDiscordIds = discordIds.filter(id => id && /^\d+$/.test(id.trim()));
-    
+    const validDiscordIds = recipientDiscordIds.filter(id => id && /^\d+$/.test(id.trim()));
+
     if (validDiscordIds.length === 0) {
       console.log('No valid Discord IDs found');
       return new Response(
         JSON.stringify({ success: true, message: 'No valid Discord IDs to notify' }),
         {
           status: 200,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          headers: { "Content-Type": "application/json", ...corsHeaders },
         }
       );
     }
 
-    // Créer les mentions Discord
-    const mentions = validDiscordIds.map(id => `<@${id.trim()}>`).join(', ');
-    
-    // Construire le message Discord
-    let discordMessage = `${mentions}\n\n${message}`;
-    
-    if (portalLink) {
-      discordMessage += `\n\n🔗 **Lien du portail:** ${portalLink}`;
-    }
+    const mentions = validDiscordIds.map(id => `<@${id.trim()}>`).join(' ');
 
-    // Envoyer le webhook Discord
+    const displaySender = senderName || senderEmail;
+    const recipientsList = recipientEmails.join(', ');
+
+    const discordMessage = `${mentions}\n\n**📧 Nouveau Message Interne**\n\n📤 **De :** ${displaySender}\n📥 **À :** ${recipientsList}\n📋 **Objet :** ${subject}\n\n💬 ${content}\n\n🔗 Consultez le portail agent pour répondre`;
+
     const discordResponse = await fetch(DISCORD_WEBHOOK_URL, {
       method: 'POST',
       headers: {
@@ -88,7 +102,7 @@ const handler = async (req: Request): Promise<Response> => {
       }),
       {
         status: 200,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );
 
@@ -98,10 +112,8 @@ const handler = async (req: Request): Promise<Response> => {
       JSON.stringify({ error: error.message }),
       {
         status: 500,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );
   }
-};
-
-serve(handler);
+});

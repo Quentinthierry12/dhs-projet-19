@@ -1100,30 +1100,38 @@ export async function sendInternalMessage(message: {
 
   // Envoyer le webhook Discord après l'envoi du message
   try {
-    // Récupérer les Discord IDs des destinataires
-    const { data: agents } = await supabase
+    // Récupérer les informations de l'expéditeur et les Discord IDs des destinataires
+    const { data: senderAgent } = await supabase
       .from('dhs_police_agents')
-      .select('email, "Discord ID"')
+      .select('name, discord_id')
+      .eq('id', message.senderId)
+      .single();
+
+    const { data: recipientAgents } = await supabase
+      .from('dhs_police_agents')
+      .select('email, discord_id')
       .in('email', message.recipientEmails);
 
-    if (agents && agents.length > 0) {
-      const discordIds = agents
-        .filter(agent => agent["Discord ID"])
-        .map(agent => agent["Discord ID"]);
+    if (recipientAgents && recipientAgents.length > 0) {
+      const discordIds = recipientAgents
+        .filter(agent => agent.discord_id)
+        .map(agent => agent.discord_id);
 
       if (discordIds.length > 0) {
         await supabase.functions.invoke('send-discord-notification', {
           body: {
-            discordIds: discordIds,
-            message: `Vous avez reçu un email: "${message.subject}" de ${message.senderEmail}. Merci de vous connecter au portail agent pour le consulter.`,
-            portalLink: window.location.origin + '/agent'
+            senderEmail: message.senderEmail,
+            senderName: senderAgent?.name,
+            recipientEmails: message.recipientEmails,
+            recipientDiscordIds: discordIds,
+            subject: message.subject,
+            content: message.content
           }
         });
       }
     }
   } catch (webhookError) {
     console.error('Erreur lors de l\'envoi du webhook Discord:', webhookError);
-    // Ne pas faire échouer l'envoi du message si le webhook échoue
   }
 
   return data;
