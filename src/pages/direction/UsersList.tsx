@@ -17,7 +17,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { UserIcon, PlusIcon, CheckIcon, XIcon, Pencil } from "lucide-react";
+import { User as UserIcon, Plus as PlusIcon, Check as CheckIcon, Bone as XIcon, Pencil } from "lucide-react";
 import { User, getAllUsers, updateUserActiveStatus } from "@/lib/auth-service";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
