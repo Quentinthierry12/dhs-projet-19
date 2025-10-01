@@ -201,12 +201,12 @@ const AgentMessages = ({ agent }: AgentMessagesProps) => {
                   Destinataires (séparés par des virgules)
                 </label>
                 <Input
-                  placeholder="agent.nom@noose.gov, autre.agent@noose.gov"
+                  placeholder="agent.nom@dhs.gov, autre.agent@dhs.gov"
                   value={recipients}
                   onChange={(e) => setRecipients(e.target.value)}
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Format: prenom.nom@noose.gov
+                  Format: prenom.nom@dhs.gov
                 </p>
               </div>
               
@@ -247,7 +247,7 @@ const AgentMessages = ({ agent }: AgentMessagesProps) => {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Users className="h-5 w-5" />
-                <span>Agents NOOSE</span>
+                <span>Agents DHS</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
