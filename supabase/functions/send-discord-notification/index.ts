@@ -9,14 +9,14 @@ const corsHeaders = {
 interface DiscordNotificationRequest {
   senderEmail: string;
   senderName?: string;
-  senderDiscordId?: string; // <-- ajouté pour pinger l'expéditeur
+  senderDiscordId?: string;
   recipientEmails: string[];
   recipientDiscordIds: string[];
   subject: string;
   content: string;
 }
 
-const DISCORD_WEBHOOK_URL = Deno.env.get("DISCORD_WEBHOOK_URL") ?? "https://discord.com/api/webhooks/1423024547866607789/andgHH1qqc2V3c-fFgEU5iosLhyAJlKEY7hWvkTR8IUSIe6TlsWKPGa1zHi4EPw8pKnb"; // <-- sécurise l’URL via variable d’env
+const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1423024547866607789/andgHH1qqc2V3c-fFgEU5iosLhyAJlKEY7hWvkTR8IUSIe6TlsWKPGa1zHi4EPw8pKnb";
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -46,11 +46,9 @@ Deno.serve(async (req: Request) => {
       subject
     });
 
-    // Vérifie qu'il y a bien des destinataires
     const validRecipientIds = (recipientDiscordIds || [])
       .filter(id => id && /^\d+$/.test(id.trim()));
 
-    // Vérifie expéditeur
     const validSenderId = senderDiscordId && /^\d+$/.test(senderDiscordId.trim())
       ? senderDiscordId.trim()
       : null;
@@ -65,24 +63,24 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Mentions formatées
-    const senderMention = validSenderId
-      ? `<@${validSenderId}>`
-      : (senderName || senderEmail);
+    let pingLine = "";
+    if (validSenderId) {
+      pingLine = `<@${validSenderId}> `;
+    }
 
-    const recipientMentions = validRecipientIds.length > 0
-      ? validRecipientIds.map(id => `<@${id}>`).join(', ')
-      : recipientEmails.join(', ');
+    if (validRecipientIds.length > 0) {
+      pingLine += validRecipientIds.map(id => `<@${id}>`).join(' ');
+    }
 
-    // Construction du message final
-    const discordMessage = `**📧 Nouveau Message Interne**\n\n` +
-      `📤 **De :** ${senderMention}\n` +
-      `📥 **À :** ${recipientMentions}\n` +
-      `📋 **Objet :** ${subject}\n\n` +
-      `💬 ${content}\n\n` +
-      `🔗 Consultez le portail agent pour répondre`;
+    const senderDisplay = senderName || senderEmail;
+    const recipientsDisplay = recipientEmails.join(', ');
 
-    // Envoi à Discord
+    const discordMessage = `${pingLine}\n\n` +
+      `**Expéditeur :** ${senderDisplay}\n\n` +
+      `**Destinataire :** ${recipientsDisplay}\n\n` +
+      `**Objet :** ${subject}\n\n` +
+      `**Contenu :**\n${content}`;
+
     const discordResponse = await fetch(DISCORD_WEBHOOK_URL, {
       method: 'POST',
       headers: {

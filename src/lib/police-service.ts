@@ -1100,28 +1100,49 @@ export async function sendInternalMessage(message: {
 
   // Envoyer le webhook Discord après l'envoi du message
   try {
-    // Récupérer les informations de l'expéditeur et les Discord IDs des destinataires
+    // Récupérer les informations de l'expéditeur
     const { data: senderAgent } = await supabase
       .from('dhs_police_agents')
       .select('name, discord_id')
       .eq('id', message.senderId)
       .single();
 
+    // Résoudre les emails de groupes en emails individuels
+    let finalRecipientEmails = [...message.recipientEmails];
+
+    for (const email of message.recipientEmails) {
+      // Vérifier si c'est un email de groupe (liste de diffusion)
+      const { data: mailingList } = await supabase
+        .from('dhs_mailing_lists')
+        .select('member_emails')
+        .eq('group_email', email)
+        .eq('is_active', true)
+        .single();
+
+      if (mailingList && mailingList.member_emails) {
+        // Remplacer l'email de groupe par les emails des membres
+        finalRecipientEmails = finalRecipientEmails.filter(e => e !== email);
+        finalRecipientEmails.push(...mailingList.member_emails);
+      }
+    }
+
+    // Récupérer les Discord IDs des destinataires finaux
     const { data: recipientAgents } = await supabase
       .from('dhs_police_agents')
       .select('email, discord_id')
-      .in('email', message.recipientEmails);
+      .in('email', finalRecipientEmails);
 
     if (recipientAgents && recipientAgents.length > 0) {
       const discordIds = recipientAgents
         .filter(agent => agent.discord_id)
         .map(agent => agent.discord_id);
 
-      if (discordIds.length > 0) {
+      if (discordIds.length > 0 || senderAgent?.discord_id) {
         await supabase.functions.invoke('send-discord-notification', {
           body: {
             senderEmail: message.senderEmail,
             senderName: senderAgent?.name,
+            senderDiscordId: senderAgent?.discord_id,
             recipientEmails: message.recipientEmails,
             recipientDiscordIds: discordIds,
             subject: message.subject,
@@ -1189,6 +1210,7 @@ export async function markMessageAsRead(messageId: string, userEmail: string) {
 
 export async function createMailingList(mailingList: {
   name: string;
+  groupEmail?: string;
   description?: string;
   memberEmails: string[];
   createdBy: string;
@@ -1198,6 +1220,7 @@ export async function createMailingList(mailingList: {
     .from('dhs_mailing_lists')
     .insert({
       name: mailingList.name,
+      group_email: mailingList.groupEmail,
       description: mailingList.description,
       member_emails: mailingList.memberEmails,
       created_by: mailingList.createdBy,
@@ -1225,6 +1248,7 @@ export async function getMailingLists() {
   return data.map(list => ({
     id: list.id,
     name: list.name,
+    groupEmail: list.group_email,
     description: list.description,
     memberEmails: list.member_emails,
     createdBy: list.created_by,
