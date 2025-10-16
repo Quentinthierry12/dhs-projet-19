@@ -95,6 +95,7 @@ export interface InternalMessage {
 export interface MailingList {
   id: string;
   name: string;
+  groupEmail?: string;
   description?: string;
   memberEmails: string[];
   createdBy: string;
