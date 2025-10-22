@@ -70,6 +70,8 @@ import UniformsList from "./pages/police/UniformsList";
 // Application pages
 import ApplicationFormsList from "./pages/applications/ApplicationFormsList";
 import CreateApplicationForm from "./pages/applications/CreateApplicationForm";
+import ApplicationFormDetail from "./pages/applications/ApplicationFormDetail";
+import EditApplicationForm from "./pages/applications/EditApplicationForm";
 import ApplicationsList from "./pages/applications/ApplicationsList";
 import ApplicationDetail from "./pages/applications/ApplicationDetail";
 import PublicApplicationForm from "./pages/applications/PublicApplicationForm";
@@ -159,6 +161,8 @@ const App = () => (
               <Route index element={<ApplicationsList />} />
               <Route path="forms" element={<ApplicationFormsList />} />
               <Route path="forms/create" element={<CreateApplicationForm />} />
+              <Route path="forms/:id" element={<ApplicationFormDetail />} />
+              <Route path="forms/:id/edit" element={<EditApplicationForm />} />
               <Route path=":id" element={<ApplicationDetail />} />
             </Route>
 
