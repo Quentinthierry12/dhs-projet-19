@@ -129,7 +129,7 @@ export async function getPoliceAgents() {
     phoneNumber: agent.phone_number,
     emergencyContact: agent.emergency_contact,
     dateOfBirth: agent.date_of_birth,
-    discordId: agent["Discord ID"],
+    discordId: agent.discord_id,
     createdAt: agent.created_at,
     updatedAt: agent.updated_at,
     status: agent.status as AgentStatus,
@@ -166,7 +166,7 @@ export async function getPoliceAgentById(id: string) {
     phoneNumber: data.phone_number,
     emergencyContact: data.emergency_contact,
     dateOfBirth: data.date_of_birth,
-    discordId: data["Discord ID"],
+    discordId: data.discord_id,
     createdAt: data.created_at,
     updatedAt: data.updated_at,
     status: data.status as AgentStatus,
@@ -297,7 +297,7 @@ export async function updateAgent(agentId: string, agent: Partial<PoliceAgent>) 
   if (agent.address) updateData.address = agent.address;
   if (agent.emergencyContact) updateData.emergency_contact = agent.emergencyContact;
   if (agent.dateOfBirth) updateData.date_of_birth = agent.dateOfBirth;
-  if (agent.discordId) updateData["Discord ID"] = agent.discordId;
+  if (agent.discordId !== undefined) updateData.discord_id = agent.discordId;
   if (agent.agencyId) updateData.agency_id = agent.agencyId;
   if (agent.gradeId) updateData.grade_id = agent.gradeId;
   if (agent.status) updateData.status = agent.status;
@@ -537,7 +537,7 @@ export async function createPoliceAgent(agent: {
       date_of_birth: agent.dateOfBirth,
       address: agent.address,
       email: agent.email,
-      "Discord ID": agent.discordId,
+      discord_id: agent.discordId,
     })
     .select()
     .single();
@@ -554,7 +554,7 @@ export async function createPoliceAgent(agent: {
     emergencyContact: data.emergency_contact,
     dateOfBirth: data.date_of_birth,
     email: data.email,
-    discordId: data["Discord ID"],
+    discordId: data.discord_id,
     createdAt: data.created_at,
     updatedAt: data.updated_at,
   };
