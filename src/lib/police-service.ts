@@ -391,6 +391,30 @@ export async function createPoliceAgency(agency: { name: string; acronym: string
 // Alias pour la compatibilité
 export const createAgency = createPoliceAgency;
 
+// Mettre à jour une agence
+export async function updateAgency(agencyId: string, agency: Partial<PoliceAgency>) {
+  const updateData: any = {};
+  if (agency.name) updateData.name = agency.name;
+  if (agency.acronym) updateData.acronym = agency.acronym;
+  if (agency.logoUrl !== undefined) updateData.logo_url = agency.logoUrl;
+
+  const { data, error } = await supabase
+    .from('dhs_agencies')
+    .update(updateData)
+    .eq('id', agencyId)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  return {
+    ...data,
+    logoUrl: data.logo_url,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+  };
+}
+
 // Obtenir tous les grades
 export async function getPoliceGrades() {
   const { data, error } = await supabase
