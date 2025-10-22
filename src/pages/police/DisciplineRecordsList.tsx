@@ -1,7 +1,7 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getAllDisciplinaryRecords } from "@/lib/police-service";
-import { format } from "date-fns";
+import { getDisciplinaryRecords } from "@/lib/police-service";
+import { formatDate } from "@/lib/date-utils";
 import { 
   Table,
   TableBody,
@@ -20,7 +20,7 @@ const DisciplineRecordsList = () => {
   const navigate = useNavigate();
   const { data: records = [], isLoading } = useQuery({
     queryKey: ['disciplinary-records'],
-    queryFn: () => getAllDisciplinaryRecords(),
+    queryFn: () => getDisciplinaryRecords(),
   });
 
   // Fix the issuedByName reference
@@ -71,7 +71,7 @@ const DisciplineRecordsList = () => {
                          "Renvoi"}
                       </Badge>
                     </TableCell>
-                    <TableCell>{format(new Date(record.issuedAt), 'dd/MM/yyyy')}</TableCell>
+                    <TableCell>{formatDate(record.issuedAt)}</TableCell>
                     <TableCell>{record.issuedBy}</TableCell>
                     <TableCell className="text-right">
                       <Button 
