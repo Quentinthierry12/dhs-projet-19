@@ -1260,3 +1260,51 @@ export async function getMailingLists() {
     updatedAt: list.updated_at,
   }));
 }
+
+export async function updateMailingList(id: string, updates: {
+  name?: string;
+  groupEmail?: string;
+  description?: string;
+  memberEmails?: string[];
+}) {
+  const updateData: any = {};
+  if (updates.name !== undefined) updateData.name = updates.name;
+  if (updates.groupEmail !== undefined) updateData.group_email = updates.groupEmail;
+  if (updates.description !== undefined) updateData.description = updates.description;
+  if (updates.memberEmails !== undefined) updateData.member_emails = updates.memberEmails;
+
+  const { data, error } = await supabase
+    .from('dhs_mailing_lists')
+    .update(updateData)
+    .eq('id', id)
+    .select(`
+      *,
+      dhs_agencies!agency_id(name)
+    `)
+    .single();
+
+  if (error) throw error;
+
+  return {
+    id: data.id,
+    name: data.name,
+    groupEmail: data.group_email,
+    description: data.description,
+    memberEmails: data.member_emails,
+    createdBy: data.created_by,
+    agencyId: data.agency_id,
+    agencyName: data.dhs_agencies?.name,
+    isActive: data.is_active,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+  };
+}
+
+export async function deleteMailingList(id: string) {
+  const { error } = await supabase
+    .from('dhs_mailing_lists')
+    .update({ is_active: false })
+    .eq('id', id);
+
+  if (error) throw error;
+}
