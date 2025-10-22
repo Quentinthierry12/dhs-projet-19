@@ -119,7 +119,7 @@ const Index = () => {
                   <CardContent>
                     <Button 
                       className="w-full bg-letc-blue hover:bg-letc-darkblue"
-                      onClick={() => navigate(`/apply/${form.id}`)}
+                      onClick={() => navigate(`/application/${form.id}`)}
                     >
                       Postuler
                     </Button>
