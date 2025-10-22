@@ -1121,15 +1121,40 @@ export async function sendInternalMessage(message: {
     senderId: message.senderId
   });
 
+  // IMPORTANT: Résoudre les emails de groupes en emails individuels AVANT l'insertion
+  let finalRecipientEmails = [...message.recipientEmails];
+
+  for (const email of message.recipientEmails) {
+    // Vérifier si c'est un email de groupe (liste de diffusion)
+    const { data: mailingList } = await supabase
+      .from('dhs_mailing_lists')
+      .select('member_emails')
+      .eq('group_email', email)
+      .eq('is_active', true)
+      .single();
+
+    if (mailingList && mailingList.member_emails) {
+      console.log(`[sendInternalMessage] Email de groupe trouvé: ${email}, ${mailingList.member_emails.length} membres`);
+      // Remplacer l'email de groupe par les emails des membres
+      finalRecipientEmails = finalRecipientEmails.filter(e => e !== email);
+      finalRecipientEmails.push(...mailingList.member_emails);
+    }
+  }
+
+  // Dédupliquer les emails (au cas où un email apparaît plusieurs fois)
+  finalRecipientEmails = [...new Set(finalRecipientEmails)];
+
+  console.log('[sendInternalMessage] Destinataires finaux pour insertion:', finalRecipientEmails);
+
   const { data, error } = await supabase
     .from('dhs_internal_messages')
     .insert({
       sender_id: message.senderId,
       sender_email: message.senderEmail,
-      recipient_emails: message.recipientEmails,
+      recipient_emails: finalRecipientEmails, // CORRECTION: Utiliser les emails individuels
       subject: message.subject,
       content: message.content,
-      is_group_message: message.isGroupMessage ?? false,
+      is_group_message: message.isGroupMessage ?? (message.recipientEmails.length > 1),
       mailing_list_id: message.mailingListId,
     })
     .select()
@@ -1155,28 +1180,6 @@ export async function sendInternalMessage(message: {
       console.warn('[sendInternalMessage] Impossible de récupérer l\'expéditeur:', senderError);
     }
 
-    // Résoudre les emails de groupes en emails individuels
-    let finalRecipientEmails = [...message.recipientEmails];
-
-    for (const email of message.recipientEmails) {
-      // Vérifier si c'est un email de groupe (liste de diffusion)
-      const { data: mailingList } = await supabase
-        .from('dhs_mailing_lists')
-        .select('member_emails')
-        .eq('group_email', email)
-        .eq('is_active', true)
-        .single();
-
-      if (mailingList && mailingList.member_emails) {
-        console.log(`[sendInternalMessage] Email de groupe trouvé: ${email}, ${mailingList.member_emails.length} membres`);
-        // Remplacer l'email de groupe par les emails des membres
-        finalRecipientEmails = finalRecipientEmails.filter(e => e !== email);
-        finalRecipientEmails.push(...mailingList.member_emails);
-      }
-    }
-
-    console.log('[sendInternalMessage] Destinataires finaux:', finalRecipientEmails);
-
     // Récupérer les Discord IDs des destinataires finaux
     const { data: recipientAgents, error: recipientsError } = await supabase
       .from('dhs_police_agents')
@@ -1192,7 +1195,7 @@ export async function sendInternalMessage(message: {
         .filter(agent => agent.discord_id)
         .map(agent => agent.discord_id);
 
-      console.log(`[sendInternalMessage] Discord IDs trouvés: ${discordIds.length}`);
+      console.log(`[sendInternalMessage] Discord IDs trouvés: ${discordIds.length}`, discordIds);
 
       if (discordIds.length > 0 || senderAgent?.discord_id) {
         console.log('[sendInternalMessage] Envoi de la notification Discord...');
@@ -1201,7 +1204,7 @@ export async function sendInternalMessage(message: {
             senderEmail: message.senderEmail,
             senderName: senderAgent?.name,
             senderDiscordId: senderAgent?.discord_id,
-            recipientEmails: message.recipientEmails,
+            recipientEmails: finalRecipientEmails,
             recipientDiscordIds: discordIds,
             subject: message.subject,
             content: message.content
@@ -1211,7 +1214,7 @@ export async function sendInternalMessage(message: {
         if (webhookError) {
           console.error('[sendInternalMessage] Erreur webhook:', webhookError);
         } else {
-          console.log('[sendInternalMessage] Notification Discord envoyée avec succès');
+          console.log('[sendInternalMessage] Notification Discord envoyée avec succès', webhookData);
         }
       } else {
         console.log('[sendInternalMessage] Aucun Discord ID, pas de notification envoyée');
