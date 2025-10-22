@@ -49,6 +49,7 @@ import InstructorSchedule from "./pages/instructor/InstructorSchedule";
 // Police pages
 import AgenciesList from "./pages/police/AgenciesList";
 import AddAgency from "./pages/police/AddAgency";
+import EditAgency from "./pages/police/EditAgency";
 import AgencyDetail from "./pages/police/AgencyDetail";
 import AgentsList from "./pages/police/AgentsList";
 import AddAgent from "./pages/police/AddAgent";
@@ -133,6 +134,7 @@ const App = () => (
               <Route path="agencies" element={<AgenciesList />} />
               <Route path="agencies/add" element={<AddAgency />} />
               <Route path="agencies/:id" element={<AgencyDetail />} />
+              <Route path="agencies/:id/edit" element={<EditAgency />} />
               <Route path="agents" element={<AgentsList />} />
               <Route path="agents/add" element={<AddAgent />} />
               <Route path="agents/:agentId" element={<AgentDetail />} />
