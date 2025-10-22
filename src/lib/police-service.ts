@@ -1134,7 +1134,7 @@ export async function sendInternalMessage(message: {
     // Récupérer les informations de l'expéditeur
     const { data: senderAgent } = await supabase
       .from('dhs_police_agents')
-      .select('name, discord_id')
+      .select('name, "Discord ID"')
       .eq('id', message.senderId)
       .single();
 
@@ -1148,7 +1148,7 @@ export async function sendInternalMessage(message: {
         .select('member_emails')
         .eq('group_email', email)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
       if (mailingList && mailingList.member_emails) {
         // Remplacer l'email de groupe par les emails des membres
@@ -1160,20 +1160,20 @@ export async function sendInternalMessage(message: {
     // Récupérer les Discord IDs des destinataires finaux
     const { data: recipientAgents } = await supabase
       .from('dhs_police_agents')
-      .select('email, discord_id')
+      .select('email, "Discord ID"')
       .in('email', finalRecipientEmails);
 
     if (recipientAgents && recipientAgents.length > 0) {
       const discordIds = recipientAgents
-        .filter(agent => agent.discord_id)
-        .map(agent => agent.discord_id);
+        .filter(agent => agent["Discord ID"])
+        .map(agent => agent["Discord ID"]);
 
-      if (discordIds.length > 0 || senderAgent?.discord_id) {
+      if (discordIds.length > 0 || senderAgent?.["Discord ID"]) {
         await supabase.functions.invoke('send-discord-notification', {
           body: {
             senderEmail: message.senderEmail,
             senderName: senderAgent?.name,
-            senderDiscordId: senderAgent?.discord_id,
+            senderDiscordId: senderAgent?.["Discord ID"],
             recipientEmails: message.recipientEmails,
             recipientDiscordIds: discordIds,
             subject: message.subject,
