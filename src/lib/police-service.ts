@@ -520,6 +520,8 @@ export async function createPoliceAgent(agent: {
   emergencyContact?: string;
   dateOfBirth?: string;
   address?: string;
+  email?: string;
+  discordId?: string;
 }) {
   const { data, error } = await supabase
     .from('dhs_police_agents')
@@ -534,6 +536,8 @@ export async function createPoliceAgent(agent: {
       emergency_contact: agent.emergencyContact,
       date_of_birth: agent.dateOfBirth,
       address: agent.address,
+      email: agent.email,
+      "Discord ID": agent.discordId,
     })
     .select()
     .single();
@@ -549,6 +553,8 @@ export async function createPoliceAgent(agent: {
     phoneNumber: data.phone_number,
     emergencyContact: data.emergency_contact,
     dateOfBirth: data.date_of_birth,
+    email: data.email,
+    discordId: data["Discord ID"],
     createdAt: data.created_at,
     updatedAt: data.updated_at,
   };

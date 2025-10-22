@@ -56,7 +56,8 @@ const AgentDetail = () => {
     discordId: '',
     agencyId: '',
     gradeId: '',
-    status: 'active' as AgentStatus
+    status: 'active' as AgentStatus,
+    candidateId: '',
   });
 
   const [loginData, setLoginData] = useState({
@@ -93,7 +94,8 @@ const AgentDetail = () => {
           discordId: agentData.discordId || '',
           agencyId: agentData.agencyId || '',
           gradeId: agentData.gradeId || '',
-          status: agentData.status || 'active'
+          status: agentData.status || 'active',
+          candidateId: agentData.candidateId || '',
         });
         
         if (agentData.agencyId) {
@@ -399,6 +401,15 @@ const AgentDetail = () => {
                       id="emergencyContact"
                       value={formData.emergencyContact}
                       onChange={(e) => setFormData(prev => ({ ...prev, emergencyContact: e.target.value }))}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="candidateId">ID du candidat</Label>
+                    <Input
+                      id="candidateId"
+                      value={formData.candidateId}
+                      onChange={(e) => setFormData(prev => ({ ...prev, candidateId: e.target.value }))}
                     />
                   </div>
                 </div>
