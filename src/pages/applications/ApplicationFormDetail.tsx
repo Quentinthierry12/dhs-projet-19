@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Edit, ExternalLink } from "lucide-react";
-import { format } from "date-fns";
+import { formatDateTime } from "@/lib/date-utils";
 
 const ApplicationFormDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -79,7 +79,7 @@ const ApplicationFormDetail = () => {
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Date de création</p>
-              <p className="mt-1">{format(new Date(form.createdAt), 'dd/MM/yyyy à HH:mm')}</p>
+              <p className="mt-1">{formatDateTime(form.createdAt)}</p>
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Créé par</p>
