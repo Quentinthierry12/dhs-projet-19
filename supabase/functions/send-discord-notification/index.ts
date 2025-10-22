@@ -16,7 +16,7 @@ interface DiscordNotificationRequest {
   content: string;
 }
 
-const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1423024547866607789/andgHH1qqc2V3c-fFgEU5iosLhyAJlKEY7hWvkTR8IUSIe6TlsWKPGa1zHi4EPw8pKnb";
+const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1385876590952710264/7jYrD3yLlj9WU9tQc9xA5AGpIY7D3D2gqGAV2da5Fg3PssWO1paZqMMTOadHLzlHxTYy";
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
