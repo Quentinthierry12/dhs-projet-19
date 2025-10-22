@@ -49,6 +49,7 @@ import InstructorSchedule from "./pages/instructor/InstructorSchedule";
 // Police pages
 import AgenciesList from "./pages/police/AgenciesList";
 import AddAgency from "./pages/police/AddAgency";
+import EditAgency from "./pages/police/EditAgency";
 import AgencyDetail from "./pages/police/AgencyDetail";
 import AgentsList from "./pages/police/AgentsList";
 import AddAgent from "./pages/police/AddAgent";
@@ -69,6 +70,8 @@ import UniformsList from "./pages/police/UniformsList";
 // Application pages
 import ApplicationFormsList from "./pages/applications/ApplicationFormsList";
 import CreateApplicationForm from "./pages/applications/CreateApplicationForm";
+import ApplicationFormDetail from "./pages/applications/ApplicationFormDetail";
+import EditApplicationForm from "./pages/applications/EditApplicationForm";
 import ApplicationsList from "./pages/applications/ApplicationsList";
 import ApplicationDetail from "./pages/applications/ApplicationDetail";
 import PublicApplicationForm from "./pages/applications/PublicApplicationForm";
@@ -133,6 +136,7 @@ const App = () => (
               <Route path="agencies" element={<AgenciesList />} />
               <Route path="agencies/add" element={<AddAgency />} />
               <Route path="agencies/:id" element={<AgencyDetail />} />
+              <Route path="agencies/:id/edit" element={<EditAgency />} />
               <Route path="agents" element={<AgentsList />} />
               <Route path="agents/add" element={<AddAgent />} />
               <Route path="agents/:agentId" element={<AgentDetail />} />
@@ -157,6 +161,8 @@ const App = () => (
               <Route index element={<ApplicationsList />} />
               <Route path="forms" element={<ApplicationFormsList />} />
               <Route path="forms/create" element={<CreateApplicationForm />} />
+              <Route path="forms/:id" element={<ApplicationFormDetail />} />
+              <Route path="forms/:id/edit" element={<EditApplicationForm />} />
               <Route path=":id" element={<ApplicationDetail />} />
             </Route>
 

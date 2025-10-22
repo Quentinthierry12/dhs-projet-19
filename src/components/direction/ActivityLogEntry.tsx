@@ -1,9 +1,7 @@
-
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { formatDateLong } from "@/lib/date-utils";
 import { 
   User, 
   Shield, 
@@ -123,7 +121,7 @@ const ActivityLogEntry = ({ log }: ActivityLogEntryProps) => {
               </div>
               
               <div className="text-xs text-gray-500">
-                {format(new Date(log.created_at), 'PPpp', { locale: fr })}
+                {formatDateLong(log.created_at)}
               </div>
               
               {log.details && formatDetails(log.details) && (

@@ -1,9 +1,8 @@
-
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getAllApplications } from "@/lib/application-service";
-import { format } from "date-fns";
+import { formatDate } from "@/lib/date-utils";
 import { 
   Table,
   TableBody,
@@ -152,7 +151,7 @@ const ApplicationsList = () => {
                   <TableRow key={application.id}>
                     <TableCell className="font-medium">{application.applicantName}</TableCell>
                     <TableCell>{application.formName}</TableCell>
-                    <TableCell>{format(new Date(application.createdAt), 'dd/MM/yyyy')}</TableCell>
+                    <TableCell>{formatDate(application.createdAt)}</TableCell>
                     <TableCell>
                       <StatusBadge status={application.status} />
                     </TableCell>

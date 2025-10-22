@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { User as UserIcon, Plus as PlusIcon, Check as CheckIcon, Bone as XIcon, Pencil } from "lucide-react";
 import { User, getAllUsers, updateUserActiveStatus } from "@/lib/auth-service";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { formatDate, formatDateTime } from "@/lib/date-utils";
 
 const UsersList = () => {
   const { isDirector, isAuthenticated, isLoading } = useAuth();
@@ -145,11 +145,11 @@ const UsersList = () => {
                           </span>
                         </TableCell>
                         <TableCell>
-                          {format(new Date(user.createdAt), "dd/MM/yyyy")}
+                          {formatDate(user.createdAt)}
                         </TableCell>
                         <TableCell>
                           {user.lastLogin
-                            ? format(new Date(user.lastLogin), "dd/MM/yyyy HH:mm")
+                            ? formatDateTime(user.lastLogin)
                             : "Jamais connecté"}
                         </TableCell>
                         <TableCell>

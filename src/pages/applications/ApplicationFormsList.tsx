@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -16,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, Edit, Eye, Users, Trophy, AlertCircle, FileText } from "lucide-react";
 import { deleteApplicationForm, getAllApplicationForms } from "@/lib/application-service";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { formatDate } from "@/lib/date-utils";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 
 const ApplicationFormsList = () => {
@@ -171,7 +170,7 @@ const ApplicationFormsList = () => {
                     <TableCell className="font-medium">{form.name}</TableCell>
                     <TableCell>{form.description}</TableCell>
                     <TableCell>{form.fields?.length || 0}</TableCell>
-                    <TableCell>{format(new Date(form.createdAt), 'dd/MM/yyyy')}</TableCell>
+                    <TableCell>{formatDate(form.createdAt)}</TableCell>
                     <TableCell>
                       {form.isActive ? (
                         <Badge className="bg-green-500">Actif</Badge>

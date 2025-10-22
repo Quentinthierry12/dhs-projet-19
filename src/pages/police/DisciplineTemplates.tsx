@@ -18,7 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, Edit, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { formatDate } from "@/lib/date-utils";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 
 const DisciplineTemplates = () => {
@@ -115,7 +115,7 @@ const DisciplineTemplates = () => {
                       </Badge>
                     </TableCell>
                     <TableCell>{template.agencyId ? "Spécifique" : "Global"}</TableCell>
-                    <TableCell>{format(new Date(template.createdAt), 'dd/MM/yyyy')}</TableCell>
+                    <TableCell>{formatDate(template.createdAt)}</TableCell>
                     <TableCell className="text-right space-x-2">
                       <Button 
                         variant="outline" 
