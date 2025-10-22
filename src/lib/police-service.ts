@@ -1126,14 +1126,20 @@ export async function sendInternalMessage(message: {
 
   for (const email of message.recipientEmails) {
     // Vérifier si c'est un email de groupe (liste de diffusion)
-    const { data: mailingList } = await supabase
+    const { data: mailingList, error: mailingListError } = await supabase
       .from('dhs_mailing_lists')
       .select('member_emails')
       .eq('group_email', email)
       .eq('is_active', true)
-      .single();
+      .maybeSingle(); // CORRECTION: Utiliser maybeSingle() au lieu de single()
 
-    if (mailingList && mailingList.member_emails) {
+    // Ignorer les erreurs - c'est normal qu'un email individuel ne soit pas un groupe
+    if (mailingListError) {
+      console.log(`[sendInternalMessage] ${email} n'est pas un email de groupe (normal)`);
+      continue;
+    }
+
+    if (mailingList && mailingList.member_emails && mailingList.member_emails.length > 0) {
       console.log(`[sendInternalMessage] Email de groupe trouvé: ${email}, ${mailingList.member_emails.length} membres`);
       // Remplacer l'email de groupe par les emails des membres
       finalRecipientEmails = finalRecipientEmails.filter(e => e !== email);

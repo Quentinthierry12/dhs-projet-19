@@ -27,6 +27,8 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    console.log('[Discord Webhook] Début du traitement...');
+    
     const {
       senderEmail,
       senderName,
@@ -37,23 +39,42 @@ Deno.serve(async (req: Request) => {
       content
     }: DiscordNotificationRequest = await req.json();
 
-    console.log('Discord notification request:', {
+    console.log('[Discord Webhook] Requête reçue:', {
       senderEmail,
       senderName,
       senderDiscordId,
-      recipientEmails,
-      recipientDiscordIds,
+      recipientEmailsCount: recipientEmails?.length || 0,
+      recipientDiscordIdsCount: recipientDiscordIds?.length || 0,
       subject
     });
 
+    // Validation et nettoyage des Discord IDs
     const validRecipientIds = (recipientDiscordIds || [])
-      .filter(id => id && /^\d+$/.test(id.trim()));
+      .filter(id => {
+        if (!id) return false;
+        const trimmedId = String(id).trim();
+        const isValid = /^\d+$/.test(trimmedId);
+        if (!isValid) {
+          console.warn(`[Discord Webhook] Discord ID invalide ignoré: "${id}"`);
+        }
+        return isValid;
+      })
+      .map(id => String(id).trim());
 
-    const validSenderId = senderDiscordId && /^\d+$/.test(senderDiscordId.trim())
-      ? senderDiscordId.trim()
-      : null;
+    let validSenderId: string | null = null;
+    if (senderDiscordId) {
+      const trimmedSenderId = String(senderDiscordId).trim();
+      if (/^\d+$/.test(trimmedSenderId)) {
+        validSenderId = trimmedSenderId;
+      } else {
+        console.warn(`[Discord Webhook] Discord ID expéditeur invalide: "${senderDiscordId}"`);
+      }
+    }
+
+    console.log(`[Discord Webhook] IDs valides - Expéditeur: ${validSenderId ? 'oui' : 'non'}, Destinataires: ${validRecipientIds.length}`);
 
     if (!validSenderId && validRecipientIds.length === 0) {
+      console.log('[Discord Webhook] Aucun Discord ID valide, pas de notification à envoyer');
       return new Response(
         JSON.stringify({ success: true, message: 'No valid Discord IDs to notify' }),
         {
@@ -63,6 +84,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    // Construire la ligne de ping
     let pingLine = "";
     if (validSenderId) {
       pingLine = `<@${validSenderId}> `;
@@ -73,13 +95,23 @@ Deno.serve(async (req: Request) => {
     }
 
     const senderDisplay = senderName || senderEmail;
-    const recipientsDisplay = recipientEmails.join(', ');
+    const recipientsDisplay = (recipientEmails || []).join(', ');
 
-    const discordMessage = `${pingLine}\n\n` +
-      `**Expéditeur :** ${senderDisplay}\n\n` +
-      `**Destinataire :** ${recipientsDisplay}\n\n` +
+    // Construire le message Discord
+    let discordMessage = `${pingLine}\n\n` +
+      `**📬 Nouveau message interne**\n\n` +
+      `**Expéditeur :** ${senderDisplay}\n` +
+      `**Destinataire(s) :** ${recipientsDisplay}\n` +
       `**Objet :** ${subject}\n\n` +
       `**Contenu :**\n${content}`;
+
+    // Discord a une limite de 2000 caractères par message
+    if (discordMessage.length > 2000) {
+      console.warn(`[Discord Webhook] Message trop long (${discordMessage.length} chars), troncature...`);
+      discordMessage = discordMessage.substring(0, 1950) + '\n\n... _(message tronqué)_';
+    }
+
+    console.log(`[Discord Webhook] Envoi au webhook Discord (${discordMessage.length} caractères)...`);
 
     const discordResponse = await fetch(DISCORD_WEBHOOK_URL, {
       method: 'POST',
@@ -96,17 +128,22 @@ Deno.serve(async (req: Request) => {
 
     if (!discordResponse.ok) {
       const errorText = await discordResponse.text();
-      console.error('Discord webhook error:', errorText);
-      throw new Error(`Discord webhook failed: ${discordResponse.status} ${errorText}`);
+      console.error('[Discord Webhook] Erreur Discord API:', {
+        status: discordResponse.status,
+        statusText: discordResponse.statusText,
+        error: errorText
+      });
+      throw new Error(`Discord webhook failed: ${discordResponse.status} - ${errorText}`);
     }
 
-    console.log('Discord notification sent successfully');
+    console.log('[Discord Webhook] Notification envoyée avec succès!');
 
     return new Response(
       JSON.stringify({
         success: true,
         message: 'Discord notification sent successfully',
-        notifiedIds: [...validRecipientIds, ...(validSenderId ? [validSenderId] : [])]
+        notifiedIds: [...validRecipientIds, ...(validSenderId ? [validSenderId] : [])],
+        messageLength: discordMessage.length
       }),
       {
         status: 200,
@@ -115,9 +152,13 @@ Deno.serve(async (req: Request) => {
     );
 
   } catch (error: any) {
-    console.error('Error in send-discord-notification function:', error);
+    console.error('[Discord Webhook] Erreur fatale:', error);
+    console.error('[Discord Webhook] Stack trace:', error.stack);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: error.stack
+      }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
