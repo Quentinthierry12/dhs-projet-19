@@ -38,7 +38,7 @@ const Dashboard = () => {
           </Link>
           <div>
             <h1 className="text-3xl font-bold text-letc-blue mb-2">
-              Tableau de bord DHS
+              Tableau de bord USMS
             </h1>
             <p className="text-gray-600">
               Aperçu complet de la formation et des candidats

@@ -247,7 +247,7 @@ const AgentMessages = ({ agent }: AgentMessagesProps) => {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Users className="h-5 w-5" />
-                <span>Agents DHS</span>
+                <span>Agents US Marshal Service</span>
               </CardTitle>
             </CardHeader>
             <CardContent>

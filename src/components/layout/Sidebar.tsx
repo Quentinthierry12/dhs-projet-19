@@ -26,8 +26,8 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
   return (
     <div className={`w-64 bg-letc-blue text-white min-h-screen ${className || ''}`}>
       <div className="p-4">
-        <h1 className="text-xl font-bold mb-2">DHS</h1>
-        <p className="text-sm mb-6">Department of Homeland Security</p>
+        <h1 className="text-xl font-bold mb-2">USMS</h1>
+        <p className="text-sm mb-6">United States Marshal Service</p>
       </div>
 
       {/* Onglets thématiques */}
@@ -41,7 +41,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
                 : "bg-gray-600 hover:bg-letc-darkblue text-gray-200"
             }`}
           >
-            Formation DHS
+            Formation US Marshal Service
           </button>
           {role === 'direction' && (
             <>
@@ -74,7 +74,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
         {/* Section Formation LETC */}
         {activeTab === "formation" && (
           <div className="mb-6">
-            <h3 className="text-xs uppercase text-gray-300 mb-3 font-semibold">FORMATION DHS</h3>
+            <h3 className="text-xs uppercase text-gray-300 mb-3 font-semibold">FORMATION US Marshal Service</h3>
             <Link to="/" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-white hover:bg-letc-darkblue rounded-md transition-colors mb-1">
               <Home className="h-4 w-4" />
               <span>Tableau de bord</span>
@@ -127,7 +127,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
         {/* Section Effectif Police */}
         {activeTab === "police" && role === 'direction' && (
           <div className="mb-6">
-            <h3 className="text-xs uppercase text-gray-300 mb-3 font-semibold">EFFECTIF DHS</h3>
+            <h3 className="text-xs uppercase text-gray-300 mb-3 font-semibold">EFFECTIF US Marshal Service</h3>
             <Link to="/direction/agents" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-white hover:bg-letc-darkblue rounded-md transition-colors mb-1">
               <Briefcase className="h-4 w-4" />
               <span>Agents</span>
