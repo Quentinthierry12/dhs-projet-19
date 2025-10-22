@@ -113,17 +113,31 @@ Deno.serve(async (req: Request) => {
 
     console.log(`[Discord Webhook] Envoi au webhook Discord (${discordMessage.length} caractères)...`);
 
+    // Préparer les IDs pour allowed_mentions
+    const allUserIds = [...validRecipientIds, ...(validSenderId ? [validSenderId] : [])];
+    
+    console.log(`[Discord Webhook] IDs à mentionner: [${allUserIds.join(', ')}]`);
+
+    const webhookPayload: any = {
+      content: discordMessage
+    };
+
+    // Ajouter allowed_mentions seulement s'il y a des IDs à mentionner
+    if (allUserIds.length > 0) {
+      webhookPayload.allowed_mentions = {
+        parse: [], // Ne pas parser automatiquement @everyone, @here, etc.
+        users: allUserIds
+      };
+    }
+
+    console.log('[Discord Webhook] Payload:', JSON.stringify(webhookPayload, null, 2));
+
     const discordResponse = await fetch(DISCORD_WEBHOOK_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        content: discordMessage,
-        allowed_mentions: {
-          users: [...validRecipientIds, ...(validSenderId ? [validSenderId] : [])]
-        }
-      }),
+      body: JSON.stringify(webhookPayload),
     });
 
     if (!discordResponse.ok) {
