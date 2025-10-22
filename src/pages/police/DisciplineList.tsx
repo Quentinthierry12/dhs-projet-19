@@ -1,8 +1,7 @@
-
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getAllDisciplinaryRecords } from "@/lib/police-service";
-import { format } from "date-fns";
+import { formatDate } from "@/lib/date-utils";
 import { 
   Table,
   TableBody,
@@ -88,7 +87,7 @@ const DisciplineList = () => {
                          "Renvoi"}
                       </Badge>
                     </TableCell>
-                    <TableCell>{format(new Date(record.issuedAt || record.date), 'dd/MM/yyyy')}</TableCell>
+                    <TableCell>{formatDate(record.issuedAt || record.date)}</TableCell>
                     <TableCell>{record.issuedBy}</TableCell>
                     <TableCell className="text-right">
                       <Button 
