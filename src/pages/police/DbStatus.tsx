@@ -137,7 +137,7 @@ const DbStatus = () => {
               <div className="space-y-3">
                 <div>
                   <p className="text-sm text-gray-600">Version du système:</p>
-                  <p className="font-semibold">DHS v2.0</p>
+                  <p className="font-semibold">USMS v2.0</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Tables principales:</p>
