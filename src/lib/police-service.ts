@@ -1113,6 +1113,14 @@ export async function sendInternalMessage(message: {
   isGroupMessage?: boolean;
   mailingListId?: string;
 }) {
+  console.log('[sendInternalMessage] Début de l\'envoi:', {
+    senderEmail: message.senderEmail,
+    recipientCount: message.recipientEmails.length,
+    recipients: message.recipientEmails,
+    subject: message.subject,
+    senderId: message.senderId
+  });
+
   const { data, error } = await supabase
     .from('dhs_internal_messages')
     .insert({
@@ -1127,16 +1135,25 @@ export async function sendInternalMessage(message: {
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) {
+    console.error('[sendInternalMessage] Erreur lors de l\'insertion:', error);
+    throw new Error(`Erreur lors de l'envoi du message: ${error.message}`);
+  }
+
+  console.log('[sendInternalMessage] Message inséré avec succès:', data.id);
 
   // Envoyer le webhook Discord après l'envoi du message
   try {
     // Récupérer les informations de l'expéditeur
-    const { data: senderAgent } = await supabase
+    const { data: senderAgent, error: senderError } = await supabase
       .from('dhs_police_agents')
       .select('name, discord_id')
       .eq('id', message.senderId)
       .single();
+
+    if (senderError) {
+      console.warn('[sendInternalMessage] Impossible de récupérer l\'expéditeur:', senderError);
+    }
 
     // Résoudre les emails de groupes en emails individuels
     let finalRecipientEmails = [...message.recipientEmails];
@@ -1151,25 +1168,35 @@ export async function sendInternalMessage(message: {
         .single();
 
       if (mailingList && mailingList.member_emails) {
+        console.log(`[sendInternalMessage] Email de groupe trouvé: ${email}, ${mailingList.member_emails.length} membres`);
         // Remplacer l'email de groupe par les emails des membres
         finalRecipientEmails = finalRecipientEmails.filter(e => e !== email);
         finalRecipientEmails.push(...mailingList.member_emails);
       }
     }
 
+    console.log('[sendInternalMessage] Destinataires finaux:', finalRecipientEmails);
+
     // Récupérer les Discord IDs des destinataires finaux
-    const { data: recipientAgents } = await supabase
+    const { data: recipientAgents, error: recipientsError } = await supabase
       .from('dhs_police_agents')
       .select('email, discord_id')
       .in('email', finalRecipientEmails);
+
+    if (recipientsError) {
+      console.warn('[sendInternalMessage] Erreur lors de la récupération des destinataires:', recipientsError);
+    }
 
     if (recipientAgents && recipientAgents.length > 0) {
       const discordIds = recipientAgents
         .filter(agent => agent.discord_id)
         .map(agent => agent.discord_id);
 
+      console.log(`[sendInternalMessage] Discord IDs trouvés: ${discordIds.length}`);
+
       if (discordIds.length > 0 || senderAgent?.discord_id) {
-        await supabase.functions.invoke('send-discord-notification', {
+        console.log('[sendInternalMessage] Envoi de la notification Discord...');
+        const { data: webhookData, error: webhookError } = await supabase.functions.invoke('send-discord-notification', {
           body: {
             senderEmail: message.senderEmail,
             senderName: senderAgent?.name,
@@ -1180,16 +1207,29 @@ export async function sendInternalMessage(message: {
             content: message.content
           }
         });
+
+        if (webhookError) {
+          console.error('[sendInternalMessage] Erreur webhook:', webhookError);
+        } else {
+          console.log('[sendInternalMessage] Notification Discord envoyée avec succès');
+        }
+      } else {
+        console.log('[sendInternalMessage] Aucun Discord ID, pas de notification envoyée');
       }
+    } else {
+      console.log('[sendInternalMessage] Aucun destinataire trouvé dans la base');
     }
   } catch (webhookError) {
-    console.error('Erreur lors de l\'envoi du webhook Discord:', webhookError);
+    console.error('[sendInternalMessage] Erreur lors de l\'envoi du webhook Discord:', webhookError);
   }
 
+  console.log('[sendInternalMessage] Message envoyé avec succès');
   return data;
 }
 
 export async function getInternalMessages(userEmail: string) {
+  console.log('[getInternalMessages] Récupération des messages pour:', userEmail);
+
   const { data, error } = await supabase
     .from('dhs_internal_messages')
     .select(`
@@ -1199,7 +1239,12 @@ export async function getInternalMessages(userEmail: string) {
     .contains('recipient_emails', [userEmail])
     .order('sent_at', { ascending: false });
 
-  if (error) throw error;
+  if (error) {
+    console.error('[getInternalMessages] Erreur lors de la récupération:', error);
+    throw new Error(`Erreur lors de la récupération des messages: ${error.message}`);
+  }
+
+  console.log(`[getInternalMessages] ${data.length} message(s) trouvé(s)`);
 
   return data.map(message => ({
     id: message.id,
@@ -1219,6 +1264,8 @@ export async function getInternalMessages(userEmail: string) {
 }
 
 export async function markMessageAsRead(messageId: string, userEmail: string) {
+  console.log('[markMessageAsRead] Marquage du message comme lu:', { messageId, userEmail });
+
   // Récupérer le message actuel
   const { data: message, error: fetchError } = await supabase
     .from('dhs_internal_messages')
@@ -1226,7 +1273,10 @@ export async function markMessageAsRead(messageId: string, userEmail: string) {
     .eq('id', messageId)
     .single();
 
-  if (fetchError) throw fetchError;
+  if (fetchError) {
+    console.error('[markMessageAsRead] Erreur lors de la récupération:', fetchError);
+    throw new Error(`Erreur lors du marquage: ${fetchError.message}`);
+  }
 
   const currentReadBy = message.read_by || [];
   if (!currentReadBy.includes(userEmail)) {
@@ -1235,7 +1285,14 @@ export async function markMessageAsRead(messageId: string, userEmail: string) {
       .update({ read_by: [...currentReadBy, userEmail] })
       .eq('id', messageId);
 
-    if (error) throw error;
+    if (error) {
+      console.error('[markMessageAsRead] Erreur lors de la mise à jour:', error);
+      throw new Error(`Erreur lors de la mise à jour: ${error.message}`);
+    }
+
+    console.log('[markMessageAsRead] Message marqué comme lu avec succès');
+  } else {
+    console.log('[markMessageAsRead] Message déjà marqué comme lu');
   }
 }
 
