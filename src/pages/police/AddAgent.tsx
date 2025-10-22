@@ -39,6 +39,13 @@ const addAgentFormSchema = z.object({
   status: z.enum(['active', 'inactive', 'suspended', 'retired', 'training'], {
     required_error: 'Veuillez sélectionner un statut.',
   }),
+  email: z.string().optional(),
+  phoneNumber: z.string().optional(),
+  discordId: z.string().optional(),
+  address: z.string().optional(),
+  emergencyContact: z.string().optional(),
+  dateOfBirth: z.string().optional(),
+  candidateId: z.string().optional(),
 });
 
 type AddAgentFormValues = z.infer<typeof addAgentFormSchema>;
@@ -57,6 +64,13 @@ const AddAgent = () => {
       agencyId: '',
       gradeId: '',
       status: 'active',
+      email: '',
+      phoneNumber: '',
+      discordId: '',
+      address: '',
+      emergencyContact: '',
+      dateOfBirth: '',
+      candidateId: '',
     },
   });
 
@@ -90,6 +104,13 @@ const AddAgent = () => {
         agencyId: values.agencyId,
         gradeId: values.gradeId,
         status: values.status,
+        email: values.email,
+        phoneNumber: values.phoneNumber,
+        discordId: values.discordId,
+        address: values.address,
+        emergencyContact: values.emergencyContact,
+        dateOfBirth: values.dateOfBirth,
+        candidateId: values.candidateId,
       });
       toast({
         title: 'Succès',
@@ -223,6 +244,97 @@ const AddAgent = () => {
                         <SelectItem value="training">En formation</SelectItem>
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="Email de l'agent" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="phoneNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Numéro de téléphone</FormLabel>
+                    <FormControl>
+                      <Input type="text" placeholder="Numéro de téléphone" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="discordId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Discord ID</FormLabel>
+                    <FormControl>
+                      <Input type="text" placeholder="Ex: 556455932956246028" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Adresse</FormLabel>
+                    <FormControl>
+                      <Input type="text" placeholder="Adresse" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="emergencyContact"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Contact d'urgence</FormLabel>
+                    <FormControl>
+                      <Input type="text" placeholder="Contact d'urgence" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="dateOfBirth"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Date de naissance</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="candidateId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ID du candidat</FormLabel>
+                    <FormControl>
+                      <Input type="text" placeholder="ID du candidat" {...field} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
