@@ -549,6 +549,102 @@ const AgentDetail = () => {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Specialties Tab */}
+        <TabsContent value="specialties">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center space-x-2">
+                  <Award className="h-5 w-5" />
+                  <span>Spécialités de l'agent</span>
+                </CardTitle>
+                {agent.agencyId && (
+                  <AssignSpecialtyDialog agentId={agentId!} agencyId={agent.agencyId} />
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {specialtiesLoading ? (
+                <div>Chargement...</div>
+              ) : specialties.length === 0 ? (
+                <div className="text-center text-gray-500 py-8">
+                  Aucune spécialité assignée à cet agent
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {specialties.map((specialty) => (
+                    <div key={specialty.id} className="border rounded-lg p-4 flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg">{specialty.specialtyName}</h3>
+                        {specialty.specialtyDescription && (
+                          <p className="text-sm text-gray-600 mt-1">{specialty.specialtyDescription}</p>
+                        )}
+                        <div className="text-sm text-gray-500 mt-2">
+                          <div>Assigné par: {specialty.assignedBy}</div>
+                          <div>Date: {new Date(specialty.assignedDate).toLocaleDateString('fr-FR')}</div>
+                        </div>
+                      </div>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => removeSpecialtyMutation.mutate(specialty.id)}
+                        disabled={removeSpecialtyMutation.isPending}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Retirer
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Disciplines Tab */}
+        <TabsContent value="disciplines">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center space-x-2">
+                  <AlertTriangle className="h-5 w-5" />
+                  <span>Dossier Disciplinaire</span>
+                </CardTitle>
+                <AddDisciplineDialog agentId={agentId!} />
+              </div>
+            </CardHeader>
+            <CardContent>
+              {disciplinesLoading ? (
+                <div>Chargement...</div>
+              ) : disciplines.length === 0 ? (
+                <div className="text-center text-gray-500 py-8">
+                  Aucun dossier disciplinaire pour cet agent
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {disciplines.map((record) => (
+                    <div 
+                      key={record.id} 
+                      className={`border rounded-lg p-4 ${getDisciplineColor(record.type)}`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <Badge variant="outline" className="font-semibold">
+                          {getDisciplineLabel(record.type)}
+                        </Badge>
+                        <span className="text-sm text-gray-600">
+                          {new Date(record.date).toLocaleDateString('fr-FR')}
+                        </span>
+                      </div>
+                      <p className="text-sm mb-2">{record.reason}</p>
+                      <p className="text-xs text-gray-500">Émis par: {record.issuedBy}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
   );
