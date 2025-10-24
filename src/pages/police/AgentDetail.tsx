@@ -72,6 +72,53 @@ const AgentDetail = () => {
     isActive: true
   });
 
+  // React Query setup
+  const queryClient = useQueryClient();
+
+  const { data: specialties = [], isLoading: specialtiesLoading } = useQuery({
+    queryKey: ['agent-specialties', agentId],
+    queryFn: () => getAgentSpecialties(agentId || ''),
+    enabled: !!agentId
+  });
+
+  const { data: disciplines = [], isLoading: disciplinesLoading } = useQuery({
+    queryKey: ['agent-disciplines', agentId],
+    queryFn: () => getAgentDisciplinaryRecords(agentId || ''),
+    enabled: !!agentId
+  });
+
+  const removeSpecialtyMutation = useMutation({
+    mutationFn: removeSpecialtyFromAgent,
+    onSuccess: () => {
+      toast({ title: "Succès", description: "Spécialité retirée" });
+      queryClient.invalidateQueries({ queryKey: ['agent-specialties', agentId] });
+    },
+    onError: () => {
+      toast({ title: "Erreur", description: "Impossible de retirer la spécialité", variant: "destructive" });
+    }
+  });
+
+  // Helper functions for disciplines
+  const getDisciplineColor = (type: DisciplinaryType) => {
+    switch (type) {
+      case 'warning': return 'bg-yellow-50 border-yellow-200';
+      case 'reprimand': return 'bg-orange-50 border-orange-200';
+      case 'suspension': return 'bg-red-50 border-red-200';
+      case 'termination': return 'bg-red-100 border-red-300';
+      default: return 'bg-gray-50';
+    }
+  };
+
+  const getDisciplineLabel = (type: DisciplinaryType) => {
+    switch (type) {
+      case 'warning': return 'AVERTISSEMENT';
+      case 'reprimand': return 'RÉPRIMANDE';
+      case 'suspension': return 'SUSPENSION';
+      case 'termination': return 'LICENCIEMENT';
+      default: return type.toUpperCase();
+    }
+  };
+
   useEffect(() => {
     if (agentId) {
       loadAgentData();
