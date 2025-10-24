@@ -888,6 +888,40 @@ export async function getAgentDisciplinaryRecords(agentId: string): Promise<Disc
   }));
 }
 
+// Créer un dossier disciplinaire
+export async function createDisciplinaryRecord(record: {
+  agentId: string;
+  type: DisciplinaryType;
+  date: string;
+  reason: string;
+  issuedBy: string;
+}): Promise<DisciplinaryRecord> {
+  const { data, error } = await supabase
+    .from('dhs_disciplinary_records')
+    .insert({
+      agent_id: record.agentId,
+      type: record.type,
+      date: record.date,
+      reason: record.reason,
+      issued_by: record.issuedBy,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  
+  return {
+    id: data.id,
+    agentId: data.agent_id,
+    type: data.type as DisciplinaryType,
+    date: data.date,
+    reason: data.reason,
+    issuedBy: data.issued_by,
+    createdAt: data.created_at,
+    issuedAt: data.issued_at || data.date,
+  };
+}
+
 // Obtenir tous les dossiers disciplinaires
 export async function getDisciplinaryRecords(): Promise<DisciplinaryRecord[]> {
   const { data, error } = await supabase

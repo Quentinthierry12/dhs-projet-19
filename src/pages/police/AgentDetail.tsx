@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, Key, Shield, Mail, User, Phone, MapPin, Calendar } from 'lucide-react';
+import { ArrowLeft, Save, Key, Shield, Mail, User, Phone, MapPin, Calendar, Award, AlertTriangle, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   getAllAgents, 
   getAgencies, 
@@ -17,12 +18,18 @@ import {
   createAgentLogin, 
   updateAgentLogin, 
   getAgentLogin,
+  getAgentSpecialties,
+  removeSpecialtyFromAgent,
+  getAgentDisciplinaryRecords,
   type PoliceAgent,
   type PoliceAgency,
   type PoliceGrade,
-  type AgentStatus
+  type AgentStatus,
+  type DisciplinaryType
 } from '@/lib/police-service';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import AssignSpecialtyDialog from '@/components/police/AssignSpecialtyDialog';
+import AddDisciplineDialog from '@/components/police/AddDisciplineDialog';
 
 interface AgentLogin {
   id: string;
@@ -64,6 +71,53 @@ const AgentDetail = () => {
     password: '',
     isActive: true
   });
+
+  // React Query setup
+  const queryClient = useQueryClient();
+
+  const { data: specialties = [], isLoading: specialtiesLoading } = useQuery({
+    queryKey: ['agent-specialties', agentId],
+    queryFn: () => getAgentSpecialties(agentId || ''),
+    enabled: !!agentId
+  });
+
+  const { data: disciplines = [], isLoading: disciplinesLoading } = useQuery({
+    queryKey: ['agent-disciplines', agentId],
+    queryFn: () => getAgentDisciplinaryRecords(agentId || ''),
+    enabled: !!agentId
+  });
+
+  const removeSpecialtyMutation = useMutation({
+    mutationFn: removeSpecialtyFromAgent,
+    onSuccess: () => {
+      toast({ title: "Succès", description: "Spécialité retirée" });
+      queryClient.invalidateQueries({ queryKey: ['agent-specialties', agentId] });
+    },
+    onError: () => {
+      toast({ title: "Erreur", description: "Impossible de retirer la spécialité", variant: "destructive" });
+    }
+  });
+
+  // Helper functions for disciplines
+  const getDisciplineColor = (type: DisciplinaryType) => {
+    switch (type) {
+      case 'warning': return 'bg-yellow-50 border-yellow-200';
+      case 'reprimand': return 'bg-orange-50 border-orange-200';
+      case 'suspension': return 'bg-red-50 border-red-200';
+      case 'termination': return 'bg-red-100 border-red-300';
+      default: return 'bg-gray-50';
+    }
+  };
+
+  const getDisciplineLabel = (type: DisciplinaryType) => {
+    switch (type) {
+      case 'warning': return 'AVERTISSEMENT';
+      case 'reprimand': return 'RÉPRIMANDE';
+      case 'suspension': return 'SUSPENSION';
+      case 'termination': return 'LICENCIEMENT';
+      default: return type.toUpperCase();
+    }
+  };
 
   useEffect(() => {
     if (agentId) {
@@ -264,6 +318,14 @@ const AgentDetail = () => {
           <TabsTrigger value="login" className="flex items-center space-x-2">
             <Key className="h-4 w-4" />
             <span>Login</span>
+          </TabsTrigger>
+          <TabsTrigger value="specialties" className="flex items-center space-x-2">
+            <Award className="h-4 w-4" />
+            <span>Spécialités</span>
+          </TabsTrigger>
+          <TabsTrigger value="disciplines" className="flex items-center space-x-2">
+            <AlertTriangle className="h-4 w-4" />
+            <span>Discipline</span>
           </TabsTrigger>
         </TabsList>
 
@@ -484,6 +546,102 @@ const AgentDetail = () => {
                   {isSaving ? 'Sauvegarde...' : agentLogin ? 'Mettre à jour' : 'Créer le login'}
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Specialties Tab */}
+        <TabsContent value="specialties">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center space-x-2">
+                  <Award className="h-5 w-5" />
+                  <span>Spécialités de l'agent</span>
+                </CardTitle>
+                {agent.agencyId && (
+                  <AssignSpecialtyDialog agentId={agentId!} agencyId={agent.agencyId} />
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {specialtiesLoading ? (
+                <div>Chargement...</div>
+              ) : specialties.length === 0 ? (
+                <div className="text-center text-gray-500 py-8">
+                  Aucune spécialité assignée à cet agent
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {specialties.map((specialty) => (
+                    <div key={specialty.id} className="border rounded-lg p-4 flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg">{specialty.specialtyName}</h3>
+                        {specialty.specialtyDescription && (
+                          <p className="text-sm text-gray-600 mt-1">{specialty.specialtyDescription}</p>
+                        )}
+                        <div className="text-sm text-gray-500 mt-2">
+                          <div>Assigné par: {specialty.assignedBy}</div>
+                          <div>Date: {new Date(specialty.assignedDate).toLocaleDateString('fr-FR')}</div>
+                        </div>
+                      </div>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => removeSpecialtyMutation.mutate(specialty.id)}
+                        disabled={removeSpecialtyMutation.isPending}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Retirer
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Disciplines Tab */}
+        <TabsContent value="disciplines">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center space-x-2">
+                  <AlertTriangle className="h-5 w-5" />
+                  <span>Dossier Disciplinaire</span>
+                </CardTitle>
+                <AddDisciplineDialog agentId={agentId!} />
+              </div>
+            </CardHeader>
+            <CardContent>
+              {disciplinesLoading ? (
+                <div>Chargement...</div>
+              ) : disciplines.length === 0 ? (
+                <div className="text-center text-gray-500 py-8">
+                  Aucun dossier disciplinaire pour cet agent
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {disciplines.map((record) => (
+                    <div 
+                      key={record.id} 
+                      className={`border rounded-lg p-4 ${getDisciplineColor(record.type)}`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <Badge variant="outline" className="font-semibold">
+                          {getDisciplineLabel(record.type)}
+                        </Badge>
+                        <span className="text-sm text-gray-600">
+                          {new Date(record.date).toLocaleDateString('fr-FR')}
+                        </span>
+                      </div>
+                      <p className="text-sm mb-2">{record.reason}</p>
+                      <p className="text-xs text-gray-500">Émis par: {record.issuedBy}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
