@@ -98,7 +98,9 @@ const AgentsList = () => {
   useEffect(() => {
     const filtered = agents.filter(agent => {
       const searchMatch = agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          agent.badgeNumber.toLowerCase().includes(searchTerm.toLowerCase());
+                          agent.badgeNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (agent.email && agent.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                          (agent.phoneNumber && agent.phoneNumber.toLowerCase().includes(searchTerm.toLowerCase()));
       const agencyMatch = agencyFilter ? agent.agencyId === agencyFilter : true;
       const gradeMatch = gradeFilter ? agent.gradeId === gradeFilter : true;
 
@@ -323,6 +325,8 @@ const AgentsList = () => {
               <TableRow>
                 <TableHead>Nom</TableHead>
                 <TableHead>Matricule</TableHead>
+                <TableHead>Téléphone</TableHead>
+                <TableHead>Email</TableHead>
                 <TableHead>Agence</TableHead>
                 <TableHead>Grade</TableHead>
                 <TableHead>Statut</TableHead>
@@ -334,6 +338,8 @@ const AgentsList = () => {
                 <TableRow key={agent.id}>
                   <TableCell className="font-medium">{agent.name}</TableCell>
                   <TableCell>{agent.badgeNumber}</TableCell>
+                  <TableCell>{agent.phoneNumber || '-'}</TableCell>
+                  <TableCell>{agent.email || '-'}</TableCell>
                   <TableCell>{agent.agencyName}</TableCell>
                   <TableCell>{agent.gradeName}</TableCell>
                   <TableCell>{agent.status}</TableCell>
