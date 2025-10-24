@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, Key, Shield, Mail, User, Phone, MapPin, Calendar } from 'lucide-react';
+import { ArrowLeft, Save, Key, Shield, Mail, User, Phone, MapPin, Calendar, Award, AlertTriangle, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   getAllAgents, 
   getAgencies, 
@@ -17,12 +18,18 @@ import {
   createAgentLogin, 
   updateAgentLogin, 
   getAgentLogin,
+  getAgentSpecialties,
+  removeSpecialtyFromAgent,
+  getAgentDisciplinaryRecords,
   type PoliceAgent,
   type PoliceAgency,
   type PoliceGrade,
-  type AgentStatus
+  type AgentStatus,
+  type DisciplinaryType
 } from '@/lib/police-service';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import AssignSpecialtyDialog from '@/components/police/AssignSpecialtyDialog';
+import AddDisciplineDialog from '@/components/police/AddDisciplineDialog';
 
 interface AgentLogin {
   id: string;
