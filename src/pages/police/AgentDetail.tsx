@@ -319,6 +319,14 @@ const AgentDetail = () => {
             <Key className="h-4 w-4" />
             <span>Login</span>
           </TabsTrigger>
+          <TabsTrigger value="specialties" className="flex items-center space-x-2">
+            <Award className="h-4 w-4" />
+            <span>Spécialités</span>
+          </TabsTrigger>
+          <TabsTrigger value="disciplines" className="flex items-center space-x-2">
+            <AlertTriangle className="h-4 w-4" />
+            <span>Discipline</span>
+          </TabsTrigger>
         </TabsList>
 
         {/* Agent Information Tab */}
