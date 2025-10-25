@@ -781,13 +781,23 @@ const CorrectCompetition = () => {
                                     <Label htmlFor={`comment-${question.id}`}>
                                       Commentaire de correction:
                                     </Label>
-                                    <Textarea
-                                      id={`comment-${question.id}`}
-                                      value={editedAnswers[question.id]?.comment ?? answerComment}
-                                      className="bg-white text-gray-900 border-2 min-h-[80px]"
-                                      placeholder="Aucun commentaire"
-                                      onChange={(e) => handleCommentChange(question.id, e.target.value)}
-                                    />
+                                    <div className="relative">
+                                      <Textarea
+                                        id={`comment-${question.id}`}
+                                        value={editedAnswers[question.id]?.comment ?? answerComment}
+                                        className="bg-white text-gray-900 border-2 min-h-[80px]"
+                                        placeholder="Aucun commentaire"
+                                        onChange={(e) => handleCommentChange(question.id, e.target.value)}
+                                      />
+                                      <div className="mt-1">
+                                        {savingStatus[question.id] === 'saved' && (
+                                          <span className="text-green-600 text-sm">✓</span>
+                                        )}
+                                        {savingStatus[question.id] === 'saving' && (
+                                          <span className="text-blue-600 text-sm">...</span>
+                                        )}
+                                      </div>
+                                    </div>
                                   </div>
                                 </CardContent>
                               </Card>
