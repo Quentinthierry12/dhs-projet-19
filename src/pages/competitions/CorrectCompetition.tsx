@@ -421,6 +421,45 @@ const CorrectCompetition = () => {
     }
   });
 
+  // Debounced auto-save effect
+  useEffect(() => {
+    if (Object.keys(editedAnswers).length === 0 || !currentEditingParticipation) return;
+
+    const timer = setTimeout(() => {
+      // Construct the updated answers array
+      const participation = currentEditingParticipation;
+      const currentAnswers = parseAnswers(participation.answers);
+
+      // Create updated answers array by merging editedAnswers into currentAnswers
+      const updatedAnswers = currentAnswers.map(answer => {
+        const edited = editedAnswers[answer.questionId];
+        if (edited) {
+          return {
+            ...answer,
+            score: edited.score,
+            comment: edited.comment
+          };
+        }
+        return answer;
+      });
+
+      // Set all edited questions to 'saving' status
+      const newSavingStatus = { ...savingStatus };
+      Object.keys(editedAnswers).forEach(questionId => {
+        newSavingStatus[questionId] = 'saving';
+      });
+      setSavingStatus(newSavingStatus);
+
+      // Trigger mutation
+      updateAnswersMutation.mutate({
+        participationId: participation.id,
+        updatedAnswers: updatedAnswers
+      });
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [editedAnswers, currentEditingParticipation]);
+
   // Show loading state
   if (isCompetitionLoading || isQuestionsLoading || isParticipationsLoading) {
     return (
