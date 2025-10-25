@@ -610,7 +610,6 @@ const CorrectCompetition = () => {
                                     <Textarea
                                       id={`answer-${question.id}`}
                                       value={answerValue}
-                                      
                                       className="bg-gray-100 text-gray-700 min-h-[100px]"
                                     />
                                   </div>
@@ -640,7 +639,6 @@ const CorrectCompetition = () => {
                                       id={`comment-${question.id}`}
                                       value={answerComment}
                                       className="bg-gray-100 text-gray-700"
-                                      
                                       placeholder="Aucun commentaire"
                                     />
                                   </div>
