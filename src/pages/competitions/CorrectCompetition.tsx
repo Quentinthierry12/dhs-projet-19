@@ -132,6 +132,11 @@ const CorrectCompetition = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const queryClient = useQueryClient();
 
+  // State for editing scores and comments
+  const [editedAnswers, setEditedAnswers] = useState<Record<string, {score: number, comment: string}>>({});
+  const [savingStatus, setSavingStatus] = useState<Record<string, 'idle' | 'saving' | 'saved'>>({});
+  const [currentEditingParticipation, setCurrentEditingParticipation] = useState<Participation | null>(null);
+
   console.log('Competition ID from params:', competitionId);
 
   // Fetch competition details
@@ -365,6 +370,135 @@ const CorrectCompetition = () => {
     }
   };
 
+  // Mutation for auto-saving score and comment edits
+  const updateAnswersMutation = useMutation({
+    mutationFn: async ({ participationId, updatedAnswers }: { participationId: string; updatedAnswers: any[] }) => {
+      const { error } = await supabase
+        .from('dhs_competition_participations')
+        .update({ answers: updatedAnswers })
+        .eq('id', participationId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      // Set all edited questions to 'saved' status
+      const savedQuestions = Object.keys(editedAnswers);
+      const newSavingStatus = { ...savingStatus };
+      savedQuestions.forEach(questionId => {
+        newSavingStatus[questionId] = 'saved';
+      });
+      setSavingStatus(newSavingStatus);
+
+      // Clear editedAnswers so debounce doesn't re-trigger
+      setEditedAnswers({});
+
+      // After 2 seconds, reset to 'idle' to hide checkmarks
+      setTimeout(() => {
+        const resetStatus = { ...newSavingStatus };
+        savedQuestions.forEach(questionId => {
+          resetStatus[questionId] = 'idle';
+        });
+        setSavingStatus(resetStatus);
+      }, 2000);
+
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries(['competitionParticipations', competitionId]);
+    },
+    onError: (error) => {
+      console.error('Error saving answers:', error);
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de l'enregistrement",
+        variant: "destructive",
+      });
+
+      // Reset status to idle on error
+      const resetStatus = { ...savingStatus };
+      Object.keys(editedAnswers).forEach(questionId => {
+        resetStatus[questionId] = 'idle';
+      });
+      setSavingStatus(resetStatus);
+    }
+  });
+
+  // Debounced auto-save effect
+  useEffect(() => {
+    if (Object.keys(editedAnswers).length === 0 || !currentEditingParticipation) return;
+
+    const timer = setTimeout(() => {
+      // Construct the updated answers array
+      const participation = currentEditingParticipation;
+      const currentAnswers = parseAnswers(participation.answers);
+
+      // Create updated answers array by merging editedAnswers into currentAnswers
+      const updatedAnswers = currentAnswers.map(answer => {
+        const edited = editedAnswers[answer.questionId];
+        if (edited) {
+          return {
+            ...answer,
+            score: edited.score,
+            comment: edited.comment
+          };
+        }
+        return answer;
+      });
+
+      // Set all edited questions to 'saving' status
+      const newSavingStatus = { ...savingStatus };
+      Object.keys(editedAnswers).forEach(questionId => {
+        newSavingStatus[questionId] = 'saving';
+      });
+      setSavingStatus(newSavingStatus);
+
+      // Trigger mutation
+      updateAnswersMutation.mutate({
+        participationId: participation.id,
+        updatedAnswers: updatedAnswers
+      });
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [editedAnswers, currentEditingParticipation]);
+
+  // Handler for score changes
+  const handleScoreChange = (questionId: string, newScore: number) => {
+    setEditedAnswers(prev => ({
+      ...prev,
+      [questionId]: {
+        score: newScore,
+        comment: prev[questionId]?.comment ?? ''
+      }
+    }));
+
+    setSavingStatus(prev => ({
+      ...prev,
+      [questionId]: 'idle'
+    }));
+  };
+
+  // Handler for comment changes
+  const handleCommentChange = (questionId: string, newComment: string) => {
+    if (!currentEditingParticipation) return;
+
+    // Get current score from either editedAnswers or from participation data
+    const currentAnswers = parseAnswers(currentEditingParticipation.answers);
+    const currentAnswer = currentAnswers.find(a => a.questionId === questionId);
+    const currentScore = editedAnswers[questionId]?.score ?? (currentAnswer?.score || 0);
+
+    setEditedAnswers(prev => ({
+      ...prev,
+      [questionId]: {
+        score: currentScore,
+        comment: newComment
+      }
+    }));
+
+    setSavingStatus(prev => ({
+      ...prev,
+      [questionId]: 'idle'
+    }));
+  };
+
   // Show loading state
   if (isCompetitionLoading || isQuestionsLoading || isParticipationsLoading) {
     return (
@@ -532,13 +666,23 @@ const CorrectCompetition = () => {
                     <Button
                       onClick={() => handleAcceptParticipation(participation.id)}
                       className="bg-green-500 text-white hover:bg-green-700"
+                      disabled={Object.values(savingStatus).some(status => status === 'saving')}
                     >
                       Accepter
                     </Button>
                   </div>
                 )}
 
-                <Dialog onOpenChange={(open) => open && setCurrentQuestionIndex(0)}>
+                <Dialog onOpenChange={(open) => {
+                  if (open) {
+                    setCurrentQuestionIndex(0);
+                    setCurrentEditingParticipation(participation);
+                    setEditedAnswers({});
+                    setSavingStatus({});
+                  } else {
+                    setCurrentEditingParticipation(null);
+                  }
+                }}>
                   <DialogTrigger asChild>
                     <Button className="w-full mt-2">Voir les détails</Button>
                   </DialogTrigger>
@@ -618,12 +762,23 @@ const CorrectCompetition = () => {
                                       <Label htmlFor={`score-${question.id}`}>
                                         Score attribué:
                                       </Label>
-                                      <Input
-                                        type="number"
-                                        id={`score-${question.id}`}
-                                        value={answerScore}
-                                        className="bg-gray-100 text-gray-700"
-                                      />
+                                      <div className="flex items-center">
+                                        <Input
+                                          type="number"
+                                          id={`score-${question.id}`}
+                                          value={editedAnswers[question.id]?.score ?? answerScore}
+                                          className="bg-white text-gray-900 border-2"
+                                          min="0"
+                                          max={question.max_points}
+                                          onChange={(e) => handleScoreChange(question.id, parseInt(e.target.value) || 0)}
+                                        />
+                                        {savingStatus[question.id] === 'saved' && (
+                                          <span className="text-green-600 text-sm ml-2">✓</span>
+                                        )}
+                                        {savingStatus[question.id] === 'saving' && (
+                                          <span className="text-blue-600 text-sm ml-2">...</span>
+                                        )}
+                                      </div>
                                     </div>
                                     <div className="flex items-end">
                                       <Badge variant="outline">
@@ -635,12 +790,23 @@ const CorrectCompetition = () => {
                                     <Label htmlFor={`comment-${question.id}`}>
                                       Commentaire de correction:
                                     </Label>
-                                    <Textarea
-                                      id={`comment-${question.id}`}
-                                      value={answerComment}
-                                      className="bg-gray-100 text-gray-700"
-                                      placeholder="Aucun commentaire"
-                                    />
+                                    <div className="relative">
+                                      <Textarea
+                                        id={`comment-${question.id}`}
+                                        value={editedAnswers[question.id]?.comment ?? answerComment}
+                                        className="bg-white text-gray-900 border-2 min-h-[80px]"
+                                        placeholder="Aucun commentaire"
+                                        onChange={(e) => handleCommentChange(question.id, e.target.value)}
+                                      />
+                                      <div className="mt-1">
+                                        {savingStatus[question.id] === 'saved' && (
+                                          <span className="text-green-600 text-sm">✓</span>
+                                        )}
+                                        {savingStatus[question.id] === 'saving' && (
+                                          <span className="text-blue-600 text-sm">...</span>
+                                        )}
+                                      </div>
+                                    </div>
                                   </div>
                                 </CardContent>
                               </Card>
