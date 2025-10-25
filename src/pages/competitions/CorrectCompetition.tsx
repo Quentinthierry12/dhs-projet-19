@@ -753,15 +753,23 @@ const CorrectCompetition = () => {
                                       <Label htmlFor={`score-${question.id}`}>
                                         Score attribué:
                                       </Label>
-                                      <Input
-                                        type="number"
-                                        id={`score-${question.id}`}
-                                        value={editedAnswers[question.id]?.score ?? answerScore}
-                                        className="bg-white text-gray-900 border-2"
-                                        min="0"
-                                        max={question.max_points}
-                                        onChange={(e) => handleScoreChange(question.id, parseInt(e.target.value) || 0)}
-                                      />
+                                      <div className="flex items-center">
+                                        <Input
+                                          type="number"
+                                          id={`score-${question.id}`}
+                                          value={editedAnswers[question.id]?.score ?? answerScore}
+                                          className="bg-white text-gray-900 border-2"
+                                          min="0"
+                                          max={question.max_points}
+                                          onChange={(e) => handleScoreChange(question.id, parseInt(e.target.value) || 0)}
+                                        />
+                                        {savingStatus[question.id] === 'saved' && (
+                                          <span className="text-green-600 text-sm ml-2">✓</span>
+                                        )}
+                                        {savingStatus[question.id] === 'saving' && (
+                                          <span className="text-blue-600 text-sm ml-2">...</span>
+                                        )}
+                                      </div>
                                     </div>
                                     <div className="flex items-end">
                                       <Badge variant="outline">
