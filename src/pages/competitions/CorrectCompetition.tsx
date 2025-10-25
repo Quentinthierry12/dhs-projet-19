@@ -756,9 +756,11 @@ const CorrectCompetition = () => {
                                       <Input
                                         type="number"
                                         id={`score-${question.id}`}
-                                        value={answerScore}
-                                        className="bg-gray-100 text-gray-700"
-                                        readOnly
+                                        value={editedAnswers[question.id]?.score ?? answerScore}
+                                        className="bg-white text-gray-900 border-2"
+                                        min="0"
+                                        max={question.max_points}
+                                        onChange={(e) => handleScoreChange(question.id, parseInt(e.target.value) || 0)}
                                       />
                                     </div>
                                     <div className="flex items-end">
