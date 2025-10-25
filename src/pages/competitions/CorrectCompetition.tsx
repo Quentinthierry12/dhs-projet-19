@@ -132,6 +132,11 @@ const CorrectCompetition = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const queryClient = useQueryClient();
 
+  // State for editing scores and comments
+  const [editedAnswers, setEditedAnswers] = useState<Record<string, {score: number, comment: string}>>({});
+  const [savingStatus, setSavingStatus] = useState<Record<string, 'idle' | 'saving' | 'saved'>>({});
+  const [currentEditingParticipation, setCurrentEditingParticipation] = useState<Participation | null>(null);
+
   console.log('Competition ID from params:', competitionId);
 
   // Fetch competition details
