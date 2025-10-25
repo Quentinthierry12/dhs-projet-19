@@ -624,7 +624,6 @@ const CorrectCompetition = () => {
                                         id={`score-${question.id}`}
                                         value={answerScore}
                                         className="bg-gray-100 text-gray-700"
-                                        readOnly
                                       />
                                     </div>
                                     <div className="flex items-end">
