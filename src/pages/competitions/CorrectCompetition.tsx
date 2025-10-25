@@ -460,6 +460,45 @@ const CorrectCompetition = () => {
     return () => clearTimeout(timer);
   }, [editedAnswers, currentEditingParticipation]);
 
+  // Handler for score changes
+  const handleScoreChange = (questionId: string, newScore: number) => {
+    setEditedAnswers(prev => ({
+      ...prev,
+      [questionId]: {
+        score: newScore,
+        comment: prev[questionId]?.comment ?? ''
+      }
+    }));
+
+    setSavingStatus(prev => ({
+      ...prev,
+      [questionId]: 'idle'
+    }));
+  };
+
+  // Handler for comment changes
+  const handleCommentChange = (questionId: string, newComment: string) => {
+    if (!currentEditingParticipation) return;
+
+    // Get current score from either editedAnswers or from participation data
+    const currentAnswers = parseAnswers(currentEditingParticipation.answers);
+    const currentAnswer = currentAnswers.find(a => a.questionId === questionId);
+    const currentScore = editedAnswers[questionId]?.score ?? (currentAnswer?.score || 0);
+
+    setEditedAnswers(prev => ({
+      ...prev,
+      [questionId]: {
+        score: currentScore,
+        comment: newComment
+      }
+    }));
+
+    setSavingStatus(prev => ({
+      ...prev,
+      [questionId]: 'idle'
+    }));
+  };
+
   // Show loading state
   if (isCompetitionLoading || isQuestionsLoading || isParticipationsLoading) {
     return (
