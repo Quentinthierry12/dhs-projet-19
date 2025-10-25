@@ -666,6 +666,7 @@ const CorrectCompetition = () => {
                     <Button
                       onClick={() => handleAcceptParticipation(participation.id)}
                       className="bg-green-500 text-white hover:bg-green-700"
+                      disabled={Object.values(savingStatus).some(status => status === 'saving')}
                     >
                       Accepter
                     </Button>
