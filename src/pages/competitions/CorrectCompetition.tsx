@@ -672,7 +672,16 @@ const CorrectCompetition = () => {
                   </div>
                 )}
 
-                <Dialog onOpenChange={(open) => open && setCurrentQuestionIndex(0)}>
+                <Dialog onOpenChange={(open) => {
+                  if (open) {
+                    setCurrentQuestionIndex(0);
+                    setCurrentEditingParticipation(participation);
+                    setEditedAnswers({});
+                    setSavingStatus({});
+                  } else {
+                    setCurrentEditingParticipation(null);
+                  }
+                }}>
                   <DialogTrigger asChild>
                     <Button className="w-full mt-2">Voir les détails</Button>
                   </DialogTrigger>
