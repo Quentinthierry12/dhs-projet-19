@@ -370,6 +370,57 @@ const CorrectCompetition = () => {
     }
   };
 
+  // Mutation for auto-saving score and comment edits
+  const updateAnswersMutation = useMutation({
+    mutationFn: async ({ participationId, updatedAnswers }: { participationId: string; updatedAnswers: any[] }) => {
+      const { error } = await supabase
+        .from('dhs_competition_participations')
+        .update({ answers: updatedAnswers })
+        .eq('id', participationId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      // Set all edited questions to 'saved' status
+      const savedQuestions = Object.keys(editedAnswers);
+      const newSavingStatus = { ...savingStatus };
+      savedQuestions.forEach(questionId => {
+        newSavingStatus[questionId] = 'saved';
+      });
+      setSavingStatus(newSavingStatus);
+
+      // Clear editedAnswers so debounce doesn't re-trigger
+      setEditedAnswers({});
+
+      // After 2 seconds, reset to 'idle' to hide checkmarks
+      setTimeout(() => {
+        const resetStatus = { ...newSavingStatus };
+        savedQuestions.forEach(questionId => {
+          resetStatus[questionId] = 'idle';
+        });
+        setSavingStatus(resetStatus);
+      }, 2000);
+
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries(['competitionParticipations', competitionId]);
+    },
+    onError: (error) => {
+      console.error('Error saving answers:', error);
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de l'enregistrement",
+        variant: "destructive",
+      });
+
+      // Reset status to idle on error
+      const resetStatus = { ...savingStatus };
+      Object.keys(editedAnswers).forEach(questionId => {
+        resetStatus[questionId] = 'idle';
+      });
+      setSavingStatus(resetStatus);
+    }
+  });
+
   // Show loading state
   if (isCompetitionLoading || isQuestionsLoading || isParticipationsLoading) {
     return (
