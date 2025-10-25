@@ -775,10 +775,10 @@ const CorrectCompetition = () => {
                                     </Label>
                                     <Textarea
                                       id={`comment-${question.id}`}
-                                      value={answerComment}
-                                      className="bg-gray-100 text-gray-700"
-                                      readOnly
+                                      value={editedAnswers[question.id]?.comment ?? answerComment}
+                                      className="bg-white text-gray-900 border-2 min-h-[80px]"
                                       placeholder="Aucun commentaire"
+                                      onChange={(e) => handleCommentChange(question.id, e.target.value)}
                                     />
                                   </div>
                                 </CardContent>
