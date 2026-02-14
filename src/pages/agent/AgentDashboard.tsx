@@ -37,7 +37,7 @@ const AgentDashboard = ({ agent, onLogout }: AgentDashboardProps) => {
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <Shield className="h-8 w-8 text-blue-600" />
-                <h1 className="text-xl font-bold text-gray-900">USMS Agent Portal</h1>
+                <h1 className="text-xl font-bold text-gray-900">USSS Agent Portal</h1>
               </div>
             </div>
             <div className="flex items-center space-x-4">
