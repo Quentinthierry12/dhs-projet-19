@@ -26,7 +26,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
   return (
     <div className={`w-64 bg-letc-blue text-white min-h-screen ${className || ''}`}>
       <div className="p-4">
-        <h1 className="text-xl font-bold mb-2">USMS</h1>
+        <h1 className="text-xl font-bold mb-2">USSS</h1>
         <p className="text-sm mb-6">United States Marshal Service</p>
       </div>
 
