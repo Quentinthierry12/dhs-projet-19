@@ -41,7 +41,7 @@ const AgentLoginForm = ({ onLogin }: AgentLoginFormProps) => {
             <Shield className="h-8 w-8 text-blue-600" />
           </div>
           <CardTitle className="text-2xl font-bold text-gray-900">
-            Connexion Agent USMS
+            Connexion Agent USSS
           </CardTitle>
           <p className="text-gray-600">
             Accédez à votre espace agent avec votre matricule
