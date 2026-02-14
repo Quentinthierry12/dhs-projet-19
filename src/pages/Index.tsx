@@ -35,8 +35,8 @@ const Index = () => {
       <header className="bg-letc-blue text-white">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-4">
-            <h1 className="text-2xl font-bold">USMS</h1>
-            <span className="hidden md:inline text-sm">United States Marshal Service</span>
+            <h1 className="text-2xl font-bold">USSS</h1>
+            <span className="hidden md:inline text-sm">United States Secret Service</span>
           </div>
           <div className="flex items-center space-x-4">
             <Button 
@@ -69,9 +69,9 @@ const Index = () => {
       {/* Hero section */}
       <section className="bg-letc-darkblue text-white py-16">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold mb-4">United States Marshal Service</h2>
+          <h2 className="text-4xl font-bold mb-4">United States Secret Service</h2>
           <p className="text-xl max-w-2xl mx-auto mb-8">
-             United States Marshal Service | Law Enforcement Training Program
+             United States Secret Service | Law Enforcement Training Program
           </p>
           <div className="flex justify-center space-x-4">
             <Button 
@@ -134,7 +134,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="bg-letc-blue text-white py-8">
         <div className="container mx-auto px-4 text-center">
-          <p>&copy; {new Date().getFullYear()} United States Marshal Service. Tous droits réservés.</p>
+          <p>&copy; {new Date().getFullYear()} United States Secret Service. Tous droits réservés.</p>
         </div>
       </footer>
     </div>
